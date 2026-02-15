@@ -6,7 +6,7 @@
 ![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
-EmaAgent 是一个多模式智能助手系统，核心包含：
+EmaAgent 是一个多模式智能助手系统 也是我的第一个智能体项目 核心包含：
 
 - `chat` 普通对话模式
 - `agent` 工具调用模式(ReAct)
@@ -26,12 +26,52 @@ EmaAgent 是一个多模式智能助手系统，核心包含：
 其余文件夹均进行内容扩写, 约 `60%`
 
 ### 前端
-全部
+全部(我不会前端)
+
+<img src="./images/others/ema.jpg" alt="ema" width="400" />
 
 ---
 
-## 更新计划
+## 更新计划 
+- [ ] 详细的使用教程
+- [ ] 一键部署
+- [ ] 日文语音输出
+- [ ] 拓展 `Tool` 功能 实现更强大的 Agent 模式
+- [ ] UI美化 自选主题
+- [ ] Live2D 优化(Live2D没做好)
+- [ ] 架构优化
+- [ ] 增加更多`LLM` `EBD` `TTS` 模型接口
+
 总之有很多要更新
+
+能做EmaAgent 肯定能做其他角色的智能体
+
+魔裁所有角色智能体 `subAgent` 都做完后 可以集成到一个大的智能体中 `MainAgent`
+
+可以开线上魔女审判`agent to agent` 让她们自主聊天
+
+就是 `Token` 消耗要上天了
+
+---
+
+## 更新日志
+
+<details>
+
+### v0.2 - 2026-02-15
+- 开源
+
+### v0.1 - 2026.1.14
+- 实现 `narrative` 功能
+- 只能在终端上运行
+
+### 2025.12.9
+- 准备开发
+
+### 2025.11
+- 刚学 Agent
+  
+</details>
 
 ---
 
@@ -179,6 +219,18 @@ Embedding向量编码模型与TTS文本转语音模型目前使用`siliconflow`
 - `siliconflow`[API](https://cloud.siliconflow.cn/me/account/ak)
 
 获取Key后,直接在`.env`文件下修改即可
+
+如果没找到`.env`文件 在根目录下新建 `.env` 文件并复制粘贴以下内容
+
+```text
+# LLM API Keys
+DEEPSEEK_API_KEY=your_deepseek_key_here
+OPENAI_API_KEY=your_openai_key_here
+QWEN_API_KEY=your_qwen_key_here
+
+# Embeddings & TTS
+SILICONFLOW_API_KEY=your_siliconflow_key_here
+```
 
 ---
 
