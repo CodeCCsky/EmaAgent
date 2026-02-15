@@ -1,4 +1,4 @@
-# EmaAgent v0.2
+# EmaAgent 
 
 ![Version](https://img.shields.io/badge/version-v0.2-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -221,9 +221,6 @@ EmaAgent-v0.2/
 ---
 
 ## 补充说明
-
-本节补充项目里最关键、也最容易和普通聊天机器人项目混淆的实现细节。
-
 ### 1. 剧情数据清洗与重排（Parser）
 
 原始脚本数据来自 Naninovel，单条记录通常是这种格式：
@@ -411,10 +408,24 @@ EmaAgent-v0.2/
 | [OpenManus](https://github.com/FoundationAgents/OpenManus) | 参考Tool架构 |
 | [LightRAG](https://github.com/HKUDS/LightRAG) | Simple and Fast Retrieval-Augmented Generation |
 | [Acacia](https://acacia-create.com/) |  |
-| [请输入文本](https://www.bilibili.com/video/BV1NCqqBuE9M/?buvid=XXC3D36CA77C347443C8E1BE9ABDA72C8EE56&from_spmid=search.search-result.0.0&is_story_h5=false&mid=SCkMrA1jFnwwFjYh6jhhHg%3D%3D&plat_id=116&share_from=ugc&share_medium=android&share_plat=android&share_session_id=73cd231c-acfa-4a3c-a6d0-2e3e162b4b12&share_source=WEIXIN&share_tag=s_i&spmid=united.player-video-detail.0.0&timestamp=1771042359&unique_k=LuTRc12&up_id=1050531840&vd_source=3151b98d67ade6395736508def783435) | 你猜艾玛的参考音频哪来的? |
+| [Serism_official](https://space.bilibili.com/1050531840?spm_id_from=333.788.upinfo.detail.click) | 你猜艾玛的参考音频哪来的?[请输入文本](https://www.bilibili.com/video/BV1NCqqBuE9M/?buvid=XXC3D36CA77C347443C8E1BE9ABDA72C8EE56&from_spmid=search.search-result.0.0&is_story_h5=false&mid=SCkMrA1jFnwwFjYh6jhhHg%3D%3D&plat_id=116&share_from=ugc&share_medium=android&share_plat=android&share_session_id=73cd231c-acfa-4a3c-a6d0-2e3e162b4b12&share_source=WEIXIN&share_tag=s_i&spmid=united.player-video-detail.0.0&timestamp=1771042359&unique_k=LuTRc12&up_id=1050531840&vd_source=3151b98d67ade6395736508def783435) |
 
+## 免责声明
+仅供个人、爱好者之间的学习、研究与技术交流用
 
-如有侵权请联系删除
+不适用于任何商业或盈利性活动
+
+本项目中展示的部分图像、声音、模型、脚本等素材
+
+其著作权及相关权利均归原始权利人所有
+
+本次开源目的在于探讨智能体开发、游戏开发、美术、音频设计、技术实现原理
+
+以促进教育与创作交流 不构成对任何原作、商标或品牌的商业使用、再分发或暗示性授权
+
+若项目中包含的素材被认定涉嫌侵犯他人版权或违反相关使用条款请及时联系
+
+我会在接收到正式通知后立即移除相关内容 避免后续再次使用
 
 ---
 
