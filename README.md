@@ -29,16 +29,72 @@ EmaAgent 是一个多模式智能助手系统，核心包含：
 ## 架构总览
 
 ```mermaid
-flowchart LR
-    FE[Frontend] --> API[FastAPI api/main.py]
-    API --> R[api/routes]
-    R --> EA[agent/EmaAgent]
-    EA --> LLM[llm/client]
-    EA --> REACT[agent/react]
-    EA --> MEM[memory]
-    EA --> NAR[narrative]
-    R --> SVC[api/services]
-    SVC --> DATA[(data/*)]
+flowchart TB
+    %% ===== Client =====
+    subgraph C["Client Layer"]
+        FE["Frontend (React + Vite)\nfrontend/src/*"]
+        L2D["Live2D Viewer\nfrontend/public/live2d/*"]
+    end
+
+    %% ===== API =====
+    subgraph B["Backend API Layer (FastAPI)"]
+        API["api/main.py\nApp Entry + CORS + Static Mount"]
+        RT["api/routes/*\nchat/sessions/settings/news/music/game/audio/live2d"]
+        SV["api/services/*\n业务服务(TTS/Session/News/Music/Game/Live2D)"]
+    end
+
+    %% ===== Core =====
+    subgraph A["Agent Orchestration Layer"]
+        EMA["agent/EmaAgent.py\n统一调度(chat/agent/narrative)"]
+        RE["agent/react.py\nReAct Tool Loop"]
+        TOOLS["tools/*\nSearch/File/Code/Terminal/Weather/Web"]
+    end
+
+    %% ===== Intelligence =====
+    subgraph I["Intelligence Layer"]
+        LLM["llm/client.py + llm/clients/*\nOpenAI/DeepSeek/Qwen/..."]
+        NAR["narrative/core.py\nRouter + RAGManager + LightRAG"]
+        MEM["memory/*\nSession Schema + Manager + Compressor"]
+    end
+
+    %% ===== Data =====
+    subgraph D["Data & Assets Layer"]
+        CFG["config/*\nsettings + paths + model config"]
+        DATA["data/*\n sessions/music/theme/font/puzzle/audio "]
+        NDATA["narrative/memory/*\n多周目向量/图谱数据"]
+        PAR["Parser/*\n剧情清洗与重排产物"]
+    end
+
+    FE --> API
+    L2D --> FE
+    API --> RT
+    RT --> SV
+    RT --> EMA
+
+    EMA --> RE
+    RE --> TOOLS
+    EMA --> LLM
+    EMA --> NAR
+    EMA --> MEM
+
+    SV --> DATA
+    NAR --> NDATA
+    MEM --> DATA
+    EMA --> CFG
+    PAR --> NAR
+
+    classDef client fill:#E3F2FD,stroke:#1E88E5,color:#0D47A1,stroke-width:1.5px;
+    classDef api fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
+    classDef agent fill:#FFF8E1,stroke:#F9A825,color:#E65100,stroke-width:1.5px;
+    classDef intel fill:#F3E5F5,stroke:#8E24AA,color:#4A148C,stroke-width:1.5px;
+    classDef data fill:#FBE9E7,stroke:#D84315,color:#BF360C,stroke-width:1.5px;
+
+    class FE,L2D client;
+    class API,RT,SV api;
+    class EMA,RE,TOOLS agent;
+    class LLM,NAR,MEM intel;
+    class CFG,DATA,NDATA,PAR data;
+
 ```
 
 ---
@@ -286,8 +342,6 @@ EmaAgent-v0.2/
 
 由衷感谢B站UP主[露姆娅](https://space.bilibili.com/1384755?spm_id_from=333.788.upinfo.head.click)提供的艾玛Live2D
 
-![live2d](./images/chat/live2d/live2d_1.png)
-
 --- 
 
 ### News
@@ -357,12 +411,10 @@ EmaAgent-v0.2/
 | [OpenManus](https://github.com/FoundationAgents/OpenManus) | 参考Tool架构 |
 | [LightRAG](https://github.com/HKUDS/LightRAG) | Simple and Fast Retrieval-Augmented Generation |
 | [Acacia](https://acacia-create.com/) |  |
+| [请输入文本](https://www.bilibili.com/video/BV1NCqqBuE9M/?buvid=XXC3D36CA77C347443C8E1BE9ABDA72C8EE56&from_spmid=search.search-result.0.0&is_story_h5=false&mid=SCkMrA1jFnwwFjYh6jhhHg%3D%3D&plat_id=116&share_from=ugc&share_medium=android&share_plat=android&share_session_id=73cd231c-acfa-4a3c-a6d0-2e3e162b4b12&share_source=WEIXIN&share_tag=s_i&spmid=united.player-video-detail.0.0&timestamp=1771042359&unique_k=LuTRc12&up_id=1050531840&vd_source=3151b98d67ade6395736508def783435) | 你猜艾玛的参考音频哪来的? |
 
 
 如有侵权请联系删除
 
 ---
 
-## 许可证
-
-MIT
