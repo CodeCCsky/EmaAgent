@@ -352,6 +352,7 @@ npm run dev
 
 ---
 
+
 ## 项目结构
 
 ```text
@@ -369,22 +370,8 @@ EmaAgent/
 │ ├─ main.py # FastAPI 应用入口、路由注册、静态资源挂载
 | |
 │ ├─ routes/ # HTTP/WS 路由层
-│ │ ├─ audio.py # 音频相关路由
-│ │ ├─ chat.py # 聊天/流式输出相关路由
-│ │ ├─ game.py # 拼图游戏资源管理路由
-│ │ ├─ live2d.py # Live2D 状态与资源路由
-│ │ ├─ music.py # 音乐上传、列表、转换等路由
-│ │ ├─ news.py # 资讯抓取与聚合路由
-│ │ ├─ sessions.py # 会话生命周期管理路由
-│ │ └─ settings.py # 系统配置与模型配置路由
 | | 
 │ └─ services/ # 业务服务层
-│ ├─ game_service.py # 拼图图片与游戏资源业务逻辑
-│ ├─ live2d_service.py # Live2D 业务处理逻辑
-│ ├─ music_service.py # 音乐文件管理/元数据处理/转换逻辑
-│ ├─ news_service.py # 多来源资讯抓取与清洗逻辑
-│ ├─ session_service.py # 会话增删改查与历史读取逻辑
-│ └─ tts_service.py # 文本转语音业务封装
 │
 ├─ audio/ # TTS 相关模块与参考音频(audio文件夹已不打算 后续更新会处理)
 │ ├─ tts_manager.py # TTS 生成与管理逻辑
@@ -400,19 +387,12 @@ EmaAgent/
 ├─ data/ # 运行时数据目录
 | |
 │ ├─ audio/ # TTS 运行时音频数据
-│ │ ├─ cache/ # 音频缓存目录
-│ │ ├─ output/ # 生成音频输出目录
-│ │ └─ Reference_audio/ # 参考音频目录
-| |
 │ ├─ covers/ # 音乐封面资源目录
 │ ├─ font/ # 字体配置目录
-│ │ └─ font.json # 字体设置持久化文件
-| |
 │ ├─ music/ # 音乐文件存储目录
 │ ├─ puzzle_images/ # 拼图游戏图片目录
 │ ├─ sessions/ # 会话数据持久化目录
 │ └─ theme/ # 主题配置目录
-│ └─ theme.json # 主题设置持久化文件
 │
 ├─ frontend/ # React + Vite 前端工程
 │ ├─ index.html # 前端入口 HTML
@@ -428,68 +408,29 @@ EmaAgent/
 │ ├─ App.tsx # 前端应用根组件
 │ ├─ index.css # 全局样式
 │ ├─ main.tsx # React 挂载入口
-│ ├─ components/
-│ │ ├─ ChatInterface.tsx # 聊天主界面组件
-│ │ ├─ DashboardLayout.tsx # 主布局组件
-│ │ ├─ EmaLive2D.tsx # Live2D 展示组件
-│ │ ├─ GamePage.tsx # 游戏页面组件
-│ │ ├─ MusicPlayer.tsx # 音乐播放器组件
-│ │ ├─ NavigationRail.tsx # 导航栏组件
-│ │ ├─ NewsPage.tsx # 新闻页面组件
-│ │ ├─ PuzzleGame.tsx # 拼图游戏核心组件
-│ │ ├─ Settings.tsx # 设置页面组件
-│ │ └─ Sidebar.tsx # 侧边栏组件
+│ ├─ components/ # 前端组件
 | |
-│ └─ styles/
-│ ├─ GamePage.css # 游戏页样式
-│ ├─ NewsPage.css # 新闻页样式
-│ └─ PuzzleGame.css # 拼图组件样式
+│ └─ styles/ # CSS样式
 │
 ├─ images/ # README 演示图片资源
-│ ├─ chat/ # 聊天演示图
-│ │ └─ live2d/ # Live2D 截图目录
-| |
-│ ├─ game/ # 游戏演示图
-│ ├─ music/ # 音乐演示图
-│ ├─ news/ # 新闻演示图
-│ └─ setting/ # 设置页面演示图
-│
+|
 ├─ llm/ # 模型配置与统一客户端
 │ ├─ client.py # LLM 统一调用入口
 │ ├─ config.py # 模型参数与提供商配置
 | |
-│ └─ clients/
-│ ├─ deepseek_client.py # DeepSeek 客户端实现
-│ ├─ openai_client.py # OpenAI 客户端实现
-│ └─ qwen_client.py # Qwen 客户端实现
+│ └─ clients/ # 三种客户端
 │
 ├─ logs/ # 运行日志目录（当前为空）
 │
 ├─ memory/ # 会话模型、压缩与持久化
-│ ├─ compressor.py # 对话上下文压缩逻辑
-│ ├─ manager.py # 会话读写与管理逻辑
-│ └─ schema.py # 会话/消息数据结构定义
 │
 ├─ narrative/ # 叙事检索与多周目 RAG
-│ ├─ core.py # NarrativeMemory 统一入口（Router + RAGManager）
-│ ├─ embedding.py # 嵌入向量生成/适配逻辑
-│ ├─ exceptions.py # narrative 相关异常定义
-│ ├─ llm_function.py # 叙事模块内 LLM 调用函数封装
-│ ├─ rag_manager.py # 多 RAG 实例并发查询与聚合
-│ ├─ router.py # 问题拆分与周目路由逻辑
-| |
 │ └─ memory/ # LightRAG 持久化数据
 │ ├─ 1st_Loop/ # 一周目剧情检索文件
 │ ├─ 2nd_Loop/ # 二周目剧情检索文件
 │ └─ 3rd_Loop/ # 三周目剧情检索文件
 │
 ├─ Parser/ # 剧情数据清洗与重排流程
-│ ├─ build_dataset.py # 原始脚本提取、清洗、结构化
-│ ├─ merger.py # 滑窗合并为可检索 chunk
-│ ├─ NaninovelParser.py # Naninovel 脚本解析器
-│ ├─ new.py # 特定周目章节重映射与修正脚本
-│ ├─ norm_merged_cleaned.json # 清洗合并后的标准化数据集
-│ └─ timeline_distribution.json # 周目/章节分布统计结果
 │
 ├─ prompts/ # 提示词模板
 │ ├─ agent_system_prompt.py # Agent 系统提示词模板
@@ -504,20 +445,12 @@ EmaAgent/
 │ ├─ webscraper.py # 网页抓取工具实现
 | |
 │ ├─ builtin/ # 内置工具
-│ │ ├─ code_exec.py # 代码执行工具
-│ │ ├─ file_ops.py # 文件操作工具
-│ │ ├─ terminal_exec.py # 终端命令执行工具
-│ │ └─ weather.py # 天气查询工具
 | |
 │ ├─ file_analysis/ # 文件分析工具
 │ │ ├─ CodeAnalyzer.py # 代码文件分析器
 │ │ └─ DocumentAnalyzer.py # 文档文件分析器
 | |
 │ └─ search/ # 搜索工具
-│ ├─ arxiv_paper.py # Arxiv 论文检索工具
-│ ├─ baidusearch.py # 百度搜索工具
-│ ├─ base.py # 搜索工具基类
-│ └─ googlesearch.py # Google 搜索工具
 │
 └─ utils/ # 通用工具模块
 └─ logger.py # 全局日志器与日志格式配置
@@ -628,10 +561,26 @@ EmaAgent/
 
 ---
 
-## 共犯名单
-感谢所有的贡献者与项目的支持者
+## 共犯名单 (Contributors Stargazers Forks)
+感谢所有卷入这场 `审判` 的人员 排名不分先后
 
 [![Contributors](https://contrib.rocks/image?repo=chengyuZou/EmaAgent)](https://github.com/chengyuZou/EmaAgent/graphs/contributors)
+
+<a href="https://github.com/chengyuZou/EmaAgent/stargazers">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://reporoster.com/stars/dark/chengyuZou/EmaAgent" />
+    <source media="(prefers-color-scheme: light)" srcset="https://reporoster.com/stars/chengyuZou/EmaAgent" />
+    <img alt="Stargazers" src="https://reporoster.com/stars/chengyuZou/EmaAgent" />
+  </picture>
+</a>
+
+<a href="https://github.com/chengyuZou/EmaAgent/network/members">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://reporoster.com/forks/dark/chengyuZou/EmaAgent" />
+    <source media="(prefers-color-scheme: light)" srcset="https://reporoster.com/forks/chengyuZou/EmaAgent" />
+    <img alt="Forks" src="https://reporoster.com/forks/chengyuZou/EmaAgent" />
+  </picture>
+</a>
 
 ---
 
@@ -667,4 +616,5 @@ EmaAgent/
 我会在接收到正式通知后立即移除相关内容 避免后续再次使用
 
 ---
+
 
