@@ -34,7 +34,7 @@ EmaAgent 是一个多模式智能助手系统 也是我的第一个智能体项�
 
 ## 更新计划 
 - [ ] 详细的使用教程
-- [ ] 一键部署
+- [x] 一键部署
 - [ ] 日文语音输出
 - [ ] 拓展 `Tool` 功能 实现更强大的 Agent 模式
 - [ ] UI美化 自选主题
@@ -58,17 +58,20 @@ EmaAgent 是一个多模式智能助手系统 也是我的第一个智能体项�
 
 <details>
 
+### v0.2 - 2026-02-16
+- 使用 `uv` 进行快速部署
+
 ### v0.2 - 2026-02-15
 - 开源
 
-### v0.1 - 2026.1.14
+### v0.1 - 2026-01-14
 - 实现 `narrative` 功能
 - 只能在终端上运行
 
-### 2025.12.9
+### 2025-12-09
 - 准备开发
 
-### 2025.11
+### 2025-11
 - 刚学 Agent
   
 </details>
@@ -165,49 +168,7 @@ flowchart TB
 
 ---
 
-## 快速启动
-
-### 1. 环境准备
-
-- Python 3.12+
-- Node.js 18+
-- AnaConda(可选)
-
-### 2. 下载并安装依赖包
-
-你可以二选一：
-
-方式 A：直接使用系统 Python 环境（最简单）
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-方式 B：使用 Conda 新建独立环境（可选）
-
-需要你下载AnaConda
-
-```bash
-conda create -n Ema python=3.12 -y
-conda activate Ema
-python -m pip install -r requirements.txt
-```
-
-Backend:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm install
-cd ..
-```
-
-### 3. 配置API Key
+## 配置API Key
 基础LLM模型可选`DeepSeek` `Qwen` `OpenAI` 三类接入 三选一即可
 - `DeepSeek` [API](https://platform.deepseek.com/api_keys)
 - `Qwen` [API](https://bailian.console.aliyun.com/cn-beijing?tab=model&utm_content=se_1023046479#/api-key)
@@ -234,7 +195,68 @@ SILICONFLOW_API_KEY=your_siliconflow_key_here
 
 ---
 
-### 4. 启动
+## uv 启动
+进入到根目录下
+
+先安装环境
+```shell
+# 一键环境安装（uv + Python + nvm + Node + 前端依赖）
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+```
+
+再一键启动
+```shell
+# 一键启动（后端8000 + 前端5173）
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+```
+
+---
+
+## 正常启动
+
+### 1. 环境准备
+
+- Python 3.12+
+- Node.js 18+
+- AnaConda(可选)
+
+### 2. 下载并安装依赖包
+
+你可以二选一：
+
+方式 A：直接使用系统 Python 环境
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+方式 B：使用 Conda 新建独立环境
+
+需要你下载AnaConda
+
+```bash
+conda create -n Ema python=3.12 -y
+conda activate Ema
+python -m pip install -r requirements.txt
+```
+
+后端:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+前端:
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+---
+
+### 3. 启动
 进入文件根目录
 
 后端:
@@ -253,12 +275,10 @@ npm run dev
 
 ---
 
-一键启动后续会更新
+### 4. 访问地址
 
-### 5. 访问地址
-
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8000`
+- 前端: `http://localhost:5173`
+- 后端: `http://localhost:8000`
 
 ---
 
