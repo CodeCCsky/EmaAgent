@@ -783,16 +783,28 @@ export default function ChatInterface({
                     </div>
 
                     {msg.sender === 'assistant' && msg.audioUrl && !msg.isTyping && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          void handleReplay(msg.audioUrl!)
-                        }}
-                        className="absolute -bottom-8 right-0 p-1.5 text-slate-400 hover:text-ema hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-all cursor-pointer opacity-70 hover:opacity-100"
-                        title="重播语音"
-                      >
-                        <PlayCircle size={18} />
-                      </button>
+                      <div className="absolute -bottom-8 right-0 flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            void handleReplay(msg.audioUrl!)
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-ema hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-all cursor-pointer opacity-70 hover:opacity-100"
+                          title="重播语音"
+                        >
+                          <PlayCircle size={18} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            stopAudioPlayback()
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-all cursor-pointer opacity-70 hover:opacity-100"
+                          title="停止语音"
+                        >
+                          <Square size={16} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
