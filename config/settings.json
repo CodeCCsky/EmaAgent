@@ -6,7 +6,7 @@
     "provider_keys": {
       "deepseek": "",
       "openai": "",
-      "qwen": "sk-44b4106ad6844fa9b06c16b7d70443b8"
+      "qwen": ""
     },
     "embeddings_model": "Pro/BAAI/bge-m3",
     "embeddings_base_url": "https://api.siliconflow.cn/v1",
