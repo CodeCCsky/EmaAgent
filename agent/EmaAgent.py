@@ -6,6 +6,7 @@ EmaAgent 主入口模块
 """
 import asyncio
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, TYPE_CHECKING, List, Dict, Any, Callable, Awaitable
 
 from agent.react import ReActAgent
@@ -24,6 +25,11 @@ if TYPE_CHECKING:
 
 
 VALID_MODES = {"chat", "agent", "narrative", "finish"}
+TEXT_ATTACHMENT_EXTENSIONS = {
+    ".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv", ".log",
+    ".ini", ".toml", ".xml", ".html", ".js", ".ts", ".tsx", ".jsx",
+    ".java", ".cpp", ".c", ".h", ".hpp", ".go", ".rs", ".sql",
+}
 
 
 class EmaAgent:
@@ -205,27 +211,104 @@ class EmaAgent:
         if not attachments:
             return base_text
         
-        # 遍历附件列表 构建每个附件的描述文本 包含名称 类型 大小 存储路径以及文本摘录等信息 
-        # 这些信息会帮助 LLM 理解附件内容 以便在 agent 模式下进行相关操作
+        # 遍历附件列表 构建每个附件的描述文本
+        # 注意 仅写入附件元信息 不写入正文 避免会话历史被文件内容污染
         lines: List[str] = []
         for index, item in enumerate(attachments, start=1):
             name = item.get("name", f"file_{index}")
             content_type = item.get("content_type", "application/octet-stream")
             size = item.get("size", 0)
             saved_path = item.get("saved_path", "")
-            excerpt = (item.get("text_excerpt") or "").strip()
 
             line = f"{index}. {name} ({content_type}, {size} bytes)"
             if saved_path:
                 line += f"\npath: {saved_path}"
-            if excerpt:
-                line += f"\ncontent:\n{excerpt[:3000]}"
             lines.append(line)
 
         attachment_block = "[User Attachments]\n" + "\n\n".join(lines)
         if base_text:
             return f"{base_text}\n\n{attachment_block}"
         return attachment_block
+
+    def _is_text_attachment(self, item: Dict[str, Any]) -> bool:
+        """
+        判断附件是否为可读文本
+        """
+        content_type = str(item.get("content_type") or "").lower()
+        if content_type.startswith("text/"):
+            return True
+
+        name = str(item.get("name") or "")
+        suffix = Path(name).suffix.lower()
+        return suffix in TEXT_ATTACHMENT_EXTENSIONS
+
+    def _resolve_attachment_file_path(self, saved_path: str) -> Optional[Path]:
+        """
+        将附件相对路径解析为安全绝对路径
+        """
+        if not saved_path:
+            return None
+        root = self.paths.root.resolve()
+        path = (root / saved_path).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            return None
+        if not path.exists() or not path.is_file():
+            return None
+        return path
+
+    def _decode_attachment_bytes(self, raw: bytes) -> Optional[str]:
+        """
+        按常见编码解码附件字节
+        """
+        for encoding in ("utf-8", "gb18030", "latin-1"):
+            try:
+                return raw.decode(encoding)
+            except Exception:
+                continue
+        return None
+
+    def _compose_attachment_context(self, attachments: Optional[List[Dict[str, Any]]]) -> str:
+        """
+        生成仅用于本次推理的附件全文上下文
+
+        该上下文不会写入会话历史 仅用于让模型读取附件正文
+        """
+        if not attachments:
+            return ""
+
+        lines: List[str] = []
+        for index, item in enumerate(attachments, start=1):
+            name = str(item.get("name") or f"file_{index}")
+            content_type = str(item.get("content_type") or "application/octet-stream")
+            size = item.get("size", 0)
+            saved_path = str(item.get("saved_path") or "")
+
+            line = f"{index}. {name} ({content_type}, {size} bytes)"
+            if saved_path:
+                line += f"\npath: {saved_path}"
+
+            if self._is_text_attachment(item):
+                resolved_path = self._resolve_attachment_file_path(saved_path)
+                if resolved_path:
+                    try:
+                        decoded = self._decode_attachment_bytes(resolved_path.read_bytes())
+                        if decoded is not None:
+                            # 按用户要求 不截断正文
+                            line += f"\ncontent:\n{decoded}"
+                    except Exception as e:
+                        line += f"\n[read_error]: {e}"
+                else:
+                    excerpt = str(item.get("text_excerpt") or "").strip()
+                    if excerpt:
+                        line += f"\ncontent:\n{excerpt}"
+
+            lines.append(line)
+
+        if not lines:
+            return ""
+        return "[User Attachments - Full Content]\n" + "\n\n".join(lines)
 
     async def run(
         self,
@@ -262,6 +345,8 @@ class EmaAgent:
         intent = self._normalize_mode(mode)
         # 合并用户上传的附件
         merged_input = self._compose_user_input(user_input, attachments)
+        # 附件全文上下文仅用于本次推理 不写入会话
+        attachment_context = self._compose_attachment_context(attachments)
 
         await self._set_emotion_by_intent(intent)
 
@@ -278,7 +363,7 @@ class EmaAgent:
             session.add_message(AssistantMessage(content=answer))
             await self._speak(answer)
         else:
-            answer = await self._handle_chat(session, merged_input)
+            answer = await self._handle_chat(session, merged_input, attachment_context=attachment_context)
 
         # 每次调用结束后 将 total_runs 计数器加1 并保存会话状态 以便后续分析和监控
         session.total_runs += 1
@@ -333,6 +418,8 @@ class EmaAgent:
         intent = self._normalize_mode(mode)
         # 合并用户上传的附件
         merged_input = self._compose_user_input(user_input, attachments)
+        # 附件全文上下文仅用于本次推理 不写入会话
+        attachment_context = self._compose_attachment_context(attachments)
 
         await self._set_emotion_by_intent(intent)
 
@@ -357,7 +444,11 @@ class EmaAgent:
                     await result
         else:
             answer, stopped = await self._handle_chat_stream(
-                session, merged_input, on_token=on_token, should_stop=should_stop
+                session,
+                merged_input,
+                on_token=on_token,
+                should_stop=should_stop,
+                attachment_context=attachment_context,
             )
 
         session.total_runs += 1
@@ -514,8 +605,12 @@ class EmaAgent:
         messages = await self._build_chat_messages(
             session=session,
             extra_user=(
-                "请用艾玛的语气和风格，润色以下内容，但注意既要维持人设，并且不要在对话中输出'让我用艾玛的风格来润色这些内容'之类的提示语，"
-                f"又要像Agent一样能解决具体问题：\n\n{final_answer}"
+                "请将以下 Agent 结果整理为专业且有人物特色的最终答复。"
+                "要求：1) 必须完整保留关键结论与技术重点，不得遗漏。"
+                "2) 必须写清关键依据（来自哪些工具结果、文件路径、命令输出要点）。"
+                "3) 输出结构固定为：结论、关键依据、可执行下一步。"
+                "4) 保持艾玛风格但措辞专业，不输出“我来润色”等提示语。\n\n"
+                f"{final_answer}"
             ),
         )
 
@@ -557,13 +652,17 @@ class EmaAgent:
         messages = await self._build_chat_messages(
             session=session,
             extra_user=(
-                "请用艾玛的语气和风格，润色以下内容，但注意既要维持人设，并且不要在对话中输出'让我用艾玛的风格来润色这些内容'之类的提示语，"
-                f"又要像Agent一样能解决具体问题：\n\n{final_answer}"
+                "请将以下 Agent 结果整理为专业且有人物特色的最终答复。"
+                "要求：1) 必须完整保留关键结论与技术重点，不得遗漏。"
+                "2) 必须写清关键依据（来自哪些工具结果、文件路径、命令输出要点）。"
+                "3) 输出结构固定为：结论、关键依据、可执行下一步。"
+                "4) 保持艾玛风格但措辞专业，不输出“我来润色”等提示语。\n\n"
+                f"{final_answer}"
             ),
         )
         return await self._chat_stream(messages, session, on_token=on_token, should_stop=should_stop)
 
-    async def _handle_chat(self, session: Session, user_input: str) -> str:
+    async def _handle_chat(self, session: Session, user_input: str, attachment_context: str = "") -> str:
         """
         处理 chat 模式非流式请求
 
@@ -575,7 +674,7 @@ class EmaAgent:
             str: 回复文本
         """
         session.add_message(UserMessage(content=user_input))
-        messages = await self._build_chat_messages(session=session)
+        messages = await self._build_chat_messages(session=session, extra_user=attachment_context)
         return await self._chat_with_tts(messages, session)
 
     async def _handle_chat_stream(
@@ -584,6 +683,7 @@ class EmaAgent:
         user_input: str,
         on_token: Optional[Callable[[str], Awaitable[None]]] = None,
         should_stop: Optional[Callable[[], bool]] = None,
+        attachment_context: str = "",
     ) -> tuple[str, bool]:
         """
         处理 chat 模式流式请求
@@ -598,7 +698,7 @@ class EmaAgent:
             tuple[str, bool]: 回复文本 与 是否中断标记
         """
         session.add_message(UserMessage(content=user_input))
-        messages = await self._build_chat_messages(session=session)
+        messages = await self._build_chat_messages(session=session, extra_user=attachment_context)
         return await self._chat_stream(messages, session, on_token=on_token, should_stop=should_stop)
 
     async def _build_chat_messages(
