@@ -6,6 +6,16 @@
 ![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
+始于 EmaAgent 但不止于只有 Ema 的 Agent
+
+换上其他角色的 `人设Prompt` `Live2D` `参考音频` 并更改少部分文件内容 就可以是任何角色的Agent
+
+做齐魔裁所有角色的智能体 就能开`线上魔女审判`
+
+<img src="./images/others/multi-agent.jpg" alt="multi-agent" width="300" />
+
+---
+
 EmaAgent 是一个多模式智能助手系统 也是我的第一个智能体项目 核心包含：
 
 - `chat` 普通对话模式
@@ -26,9 +36,10 @@ EmaAgent 是一个多模式智能助手系统 也是我的第一个智能体项�
 其余文件夹均进行内容扩写, 约 `60%`
 
 ### 前端
-全部(我不会前端)
+全部 前端是梅露露教的 
 
 <img src="./images/others/ema.jpg" alt="ema" width="400" />
+<img src="./images/others/mll.jpg" alt="mll" width="300" />
 
 ---
 
@@ -184,6 +195,8 @@ Embedding向量编码模型与TTS文本转语音模型目前使用`siliconflow`
 
 如果没找到`.env`文件 在根目录下新建 `.env` 文件并复制粘贴以下内容
 
+记得配置API的时候充点钱
+
 ```text
 # LLM API Keys
 DEEPSEEK_API_KEY=your_deepseek_key_here
@@ -197,6 +210,8 @@ SILICONFLOW_API_KEY=your_siliconflow_key_here
 ---
 
 ## 一键启动
+默认使用 [uv 启动](#uv-启动)
+
 目前只测试了 Windows 环境 Linux 环境还没测试
 
 ### Windows 系统
