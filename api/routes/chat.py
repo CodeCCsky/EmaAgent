@@ -27,6 +27,11 @@ SENTENCE_SPLIT_REGEX = re.compile(r"[。！？?!\n]")
 TEXT_EXTENSIONS = {".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv", ".log", ".ini"}
 # 代码块标记 用于分离可见文本与代码内容 避免 TTS 朗读代码
 FENCE_MARKER = "```"
+# 动作描述标记 例如 （微笑） (叹气) *nod* **smile**
+ACTION_PAREN_CN_REGEX = re.compile(r"（[^（）\n]{0,80}）")
+ACTION_PAREN_EN_REGEX = re.compile(r"\([^()\n]{0,80}\)")
+ACTION_STAR_BOLD_REGEX = re.compile(r"\*\*[^*\n]{1,80}\*\*")
+ACTION_STAR_REGEX = re.compile(r"(?<!\*)\*[^*\n]{1,80}\*(?!\*)")
 
 
 def get_agent() -> EmaAgent:
@@ -210,6 +215,10 @@ def _normalize_tts_text(text: str) -> str:
         return ""
 
     result = text
+    # 兼容字面量换行转义 避免 "\n" 被当普通字符保留下来
+    result = result.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\r", "\n")
+    # 去除动作描述文本
+    result = _strip_action_text(result)
     # 去除行内代码
     result = re.sub(r"`[^`\n]*`", " ", result)
     # 去除图片 markdown
@@ -227,6 +236,35 @@ def _normalize_tts_text(text: str) -> str:
     result = re.sub(r"[ \t]+", " ", result)
     result = re.sub(r"\n{3,}", "\n\n", result)
     return result
+
+
+def _strip_action_text(text: str) -> str:
+    """
+    去除常见动作标记文本
+
+    支持格式
+    - （动作）
+    - (action)
+    - *action*
+    - **action**
+    """
+    if not text:
+        return ""
+
+    result = text
+    # 多轮替换以处理相邻或嵌套的标记
+    for _ in range(4):
+        next_result = ACTION_PAREN_CN_REGEX.sub(" ", result)
+        next_result = ACTION_PAREN_EN_REGEX.sub(" ", next_result)
+        next_result = ACTION_STAR_BOLD_REGEX.sub(" ", next_result)
+        next_result = ACTION_STAR_REGEX.sub(" ", next_result)
+        if next_result == result:
+            break
+        result = next_result
+
+    result = re.sub(r"[ \t]{2,}", " ", result)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return result.strip()
 
 
 def _has_speakable_content(text: str) -> bool:
@@ -553,7 +591,7 @@ async def websocket_chat(websocket: WebSocket):
             fenced_buffer["value"] = carry
             # 可见文本进入句子缓冲区并做 TTS 清洗
             if visible_text:
-                sentence_buffer["value"] += _normalize_tts_text(visible_text)
+                sentence_buffer["value"] += visible_text
 
             # 持续尝试切出完整句子
             while True:
@@ -568,6 +606,8 @@ async def websocket_chat(websocket: WebSocket):
                 sentence = sentence_buffer["value"][:end].strip()
                 # 保留剩余未完成句子
                 sentence_buffer["value"] = sentence_buffer["value"][end:]
+                # 句级清洗 避免动作标记跨 token 时漏过滤
+                sentence = _normalize_tts_text(sentence).strip()
                 # 仅投递可发音句子
                 if sentence and _has_speakable_content(sentence):
                     # 将可发音句子投递到音频队列
@@ -590,9 +630,9 @@ async def websocket_chat(websocket: WebSocket):
                 visible_text, _ = _extract_non_code_text(fenced_buffer["value"])
                 # 尾部文本追加到句子缓冲区
                 if visible_text:
-                    sentence_buffer["value"] += _normalize_tts_text(visible_text)
+                    sentence_buffer["value"] += visible_text
                 # 提取最终尾句
-                tail = sentence_buffer["value"].strip()
+                tail = _normalize_tts_text(sentence_buffer["value"]).strip()
                 # 尾句可发音则投递
                 if tail and _has_speakable_content(tail):
                     await audio_queue.put(tail)
