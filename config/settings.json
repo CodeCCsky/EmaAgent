@@ -20,6 +20,7 @@
           },
           "vits_simple_api": {
             "base_url": "http://localhost:23456/voice/vits",
+            "api_key": "NOT_REQUIRED",
             "model": "vits",
             "id": "0"
           }

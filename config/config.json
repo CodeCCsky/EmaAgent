@@ -123,6 +123,7 @@
       "vits_simple_api": {
         "label": "VITS Simple API",
         "base_url": "http://localhost:23456/voice/vits",
+        "api_key": "NOT_REQUIRED",
         "model": "vits",
         "id": "0",
         "support_clone_voice": false

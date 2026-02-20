@@ -103,6 +103,7 @@ tts:
       support_clone_voice: true
     vits_simple_api:
       base_url: http://localhost:23456/voice/vits
+      api_key: NOT_REQUIRED
       id: '0'
       label: VITS Simple API
       model: vits
