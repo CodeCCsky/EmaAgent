@@ -40,7 +40,7 @@ class VitsSimpleApiTTSProvider(BaseTTSProvider):
 
             paths = get_paths()
             out_dir = paths.audio_cache_dir
-            filename = f"speech_{int(time.time()*1000)}.wav"
+            filename = f"speech_{int(time.time()*1000)}.wav" # vits_simple_api 默认返回 wav 格式
             output_path = out_dir / filename
             output_path.write_bytes(resp.content)
 

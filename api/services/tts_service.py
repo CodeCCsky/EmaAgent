@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 from threading import Lock, Thread
 from typing import Dict, List, Any, Optional
+from pydub import AudioSegment
 
 from config.paths import get_paths
 from utils.logger import logger
@@ -23,6 +24,14 @@ from api.services.tts import VitsSimpleApiTTSProvider
 ACTION_REMOVE_REGEX = re.compile(r"（[^）]*）|\([^)]*\)|\*[^*]*\*", flags=re.DOTALL)
 # 合并后延迟删除分段文件 避免首播时 404
 CHUNK_DELETE_DELAY_SECONDS = 180
+
+
+# 支持的输入音频文件格式列表（根据 pydub 支持的格式进行扩展）
+SUPPORTED_INPUT_FORMATS = [".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac"]
+# 统一输出的音频文件目标格式
+TARGET_FORMAT = "mp3"
+TARGET_FORMAT_MIME = "audio/mpeg"
+
 
 class APITTSService:
     """
@@ -119,6 +128,8 @@ class APITTSService:
             else:
                 # TODO fallback 机制
                 logger.error(f"[TTS Service] TTS provider 加载失败: {provider_name}")
+                self._provider = None
+                self._provider_name = None
 
     def get_current_provider_name(self) -> str:
         """
@@ -225,6 +236,54 @@ class APITTSService:
         check_text = re.sub(r"[^\w\u4e00-\u9fff]", "", text or "")
         return len(check_text) > 0
 
+
+    def _convert_to_target_format(self, input_path: Path) -> Optional[Path]:
+        """
+        将音频文件转换为目标格式 (MP3)
+
+        Args:
+            input_path: 输入音频文件路径
+
+        Returns:
+            Optional[Path]: 转换后的文件路径，失败返回 None
+        """
+        try:
+            # 如果已经是目标格式，直接返回
+            if input_path.suffix.lower() == f".{TARGET_FORMAT}":
+                return input_path
+
+            logger.info(f"🔄 [TTS Service] 转换音频格式: {input_path.suffix} -> .{TARGET_FORMAT}")
+
+            # 生成输出文件路径（在 cache 目录下）
+            output_path = input_path.parent / f"{input_path.stem}.{TARGET_FORMAT}"
+
+            # 使用 pydub 转换格式
+            audio = AudioSegment.from_file(input_path)
+            audio.export(output_path, format=TARGET_FORMAT)
+
+            # 验证转换结果
+            if output_path.exists() and output_path.stat().st_size > 10:
+                logger.info(f"✅ [TTS Service] 格式转换成功: {output_path}")
+
+                # 如果输入文件不是目标格式且与输出文件不同，删除原始文件
+                if input_path != output_path and input_path.exists():
+                    try:
+                        input_path.unlink()
+                        logger.debug(f"[TTS Service] 格式转换-已删除原始文件: {input_path}")
+                    except Exception as e:
+                        logger.warning(f"[TTS Service] 格式转换-删除原始文件失败: {e}")
+
+                return output_path
+            else:
+                logger.warning(f"❌ [TTS Service] 格式转换失败: 输出文件无效")
+                return input_path  # 返回原文件作为 fallback
+
+        except Exception as e:
+            logger.warning(f"❌ [TTS Service] 格式转换异常: {e}")
+            # 转换失败时返回原文件，让上层决定如何处理
+            return input_path
+
+
     def generate(self, text: str) -> Optional[str]:
         """
         生成单段语音并保存到 cache 目录, provider 对外接口
@@ -238,11 +297,11 @@ class APITTSService:
         # NOTE 或者可以移入 provider 内部, 但此处先统一处理文本保证可用性最大化, 后续有需求时再进行更改
         clean_text = self._clean_text(text)
         if not self._is_valid_text(clean_text):
-            logger.warning(f"无效文本: {text}")
+            logger.warning(f"[TTS Service] 无效文本: {text}")
             return None
 
         if not self._provider:
-            logger.error("No TTS provider available")
+            logger.error("[TTS Service] 未加载 TTS provider")
             return None
 
         # 获取 cache 目录路径
@@ -252,7 +311,11 @@ class APITTSService:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         generate_dir = self._provider.generate(clean_text)
-        return generate_dir
+        if not generate_dir:
+            return None
+        generated_path = Path(generate_dir)
+        converted_path = self._convert_to_target_format(generated_path)
+        return str(converted_path)
 
     def merge_audio_files(self, file_paths: List[str]) -> Optional[str]:
         """
